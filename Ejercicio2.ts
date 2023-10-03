@@ -1,38 +1,50 @@
-function TimeConvert12to24(input:string):string {
-    if(input.length < 7  || input.length > 8) {
-        throw new Error("String provided is the incorrect size to be a time notation");
-    }
-    let hour: number = Number(input.substring(0, input.length - 6));
-    let minute: number = Number(input.substring(input.length - 5, input.length - 3));
-    if(isNaN(hour) || isNaN(minute)) {
-        throw new Error("Hour or minute provided is not a number");
-    }
-    if(input.substring(input.length - 6, input.length - 5) !== ":") {
-        throw new Error("Time provided has no colon between the hours and minutes (and that's just sad)");
-    }
-    if(hour < 0 || hour > 12) {
-        throw new Error("Hour is out of expected range (0 to 12)");
-    }
-    if(minute < 0 || minute > 59) {
-        throw new Error("Minute is out of expected range (0 to 59)");
-    }
-    let matinas: string = input.substring(input.length - 2, input.length)
-    if(matinas == "am" || matinas == "pm") {
-        if(matinas == "am" && hour == 12) {
-            hour = 0;
-        } else if (matinas == "pm" && hour !== 12) {
-            hour = hour + 12;
-        }
+// Function that checks if a given string is a letter
+function isLetter(input: string):boolean{
+    return /^[a-z]$/i.test(input);
+}
+
+// Function that checks if a given string is a number
+function isNumber(input: string):boolean{
+    return !isNaN(Number(input));
+}
+
+// Function that checks if a given array has three consecutive numbers
+function threeConsecutiveNumbers(input: Array<string>):boolean{
+    const numPresent: boolean = input.some(elem => isNumber(elem));
+    if(numPresent === false && input.length < 3) {
+        return false;
     } else {
-        throw new Error("Time lacks a proper matinas indicator (am or pm)");
+        for(let i = 0; i < input.length - 2; i++) {
+            if(isNumber(input[i]) && isNumber(input[i+1]) && isNumber(input[i+2])) {
+                return true;
+            }
+        }
     }
-    let output: string = hour + ":" + minute;
+    return false;
+}
+
+// Function that gives a score to the password from -2 to 4. If outputConditions is set to true, the function will print all the conditions met into console
+function AssessPasswordSecurity(input:string, outputConditions?:boolean):number {
+    const inputArray: string[] = [];
+    let output: number = 0;
+
+    for(let i = 0; i < input.length; i++) {
+        inputArray.push(input[i]);
+    };
+
+    const numberPresent: boolean = inputArray.some(elem => isNumber(elem));
+    const letterPresent: boolean = inputArray.some(elem => isLetter(elem));
+    // Condition 1: Number and letter present
+    if(numberPresent && letterPresent) { outputConditions && console.log("Positive Condition 1 met"); output++; };
+    // Condition 2: Special character (neither number nor letter) present
+    if(inputArray.some(elem => !isNumber(elem) && !isLetter(elem))) { outputConditions && console.log("Positive Condition 2 met"); output++; };
+    // Condition 3: Three consecutive numbers present
+    if(threeConsecutiveNumbers(inputArray)) { outputConditions && console.log("Negative Condition 3 met"); output--; };
+    // Conditions 4 and 5: Less than 10 characters and more than 20 characters
+    if(inputArray.length < 10) { outputConditions && console.log("Negative Condition 4 met"); output--; } else if(inputArray.length > 20) { outputConditions && console.log("Positive Condition 5 met"); output = output + 2; };
     return output;
 }
 
-const Time12_1: string = "12:00 am";
-try {
-    console.log(TimeConvert12to24(Time12_1));
-} catch(error) {
-    console.log(error);
-}
+const password: string = "qwertyuiop_16asdfghjkl123zxcvbnm";
+const passwordEvaluation: number = AssessPasswordSecurity(password, true);
+console.log(passwordEvaluation);
